@@ -1,6 +1,7 @@
 from notion.client import NotionClient
 from notion.collection import NotionDate
 from datetime import datetime, timedelta
+from math import ceil
 
 
 class todo_list_mgr:
@@ -57,8 +58,13 @@ class task_mgr:
 
     @staticmethod
     def __update_next_due(row):
-        row.Scheduled = NotionDate(
-            start=row.Scheduled.start+timedelta(days=int(row.Interval)))
+        interval = int(row.Interval)
+        last_start = row.Scheduled.start
+        today = datetime.today().date()
+        start_to_now_days = (today - last_start).days
+        next_day = last_start + timedelta(days=ceil(start_to_now_days / interval) * interval)
+
+        row.Scheduled = NotionDate(start=next_day)
         row.Done = False
 
     def __update_timeline(self, row):
@@ -114,3 +120,5 @@ class task_mgr:
 
         # refresh task and update timeline info
         self.__update_timeline(row)
+
+
